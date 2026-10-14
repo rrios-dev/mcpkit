@@ -1,0 +1,46 @@
+# MCPKit
+
+A small [Model Context Protocol](https://modelcontextprotocol.io) server for Swift
+apps, over stdio, on Foundation alone. It is what lets Quill, Ámbar and Tessera be
+used from Claude Code, Codex or any other MCP client.
+
+It covers what a local app needs and no more: the lifecycle (`initialize`, `ping`),
+tools (`tools/list`, `tools/call`) with annotations, text and image results,
+cancellation, and requests served concurrently so a slow tool does not block the rest.
+
+```swift
+import MCPKit
+
+let server = Server(
+    info: Server.Info(name: "notes", version: "1.0"),
+    tools: [
+        Tool(name: "search_notes", description: "Finds notes containing the words.",
+             inputSchema: Schema.object(["query": Schema.string("Words to find.")], required: ["query"])) { arguments in
+            .text(try search(arguments.string("query")))
+        },
+    ],
+    gate: { accessEnabled ? nil : "Turn on agent access in Notes › Settings." },
+    onCall: { call in log("\(call.client ?? "?") used \(call.tool)") }
+)
+await server.run()
+```
+
+Register the built executable with a client:
+
+```bash
+claude mcp add --scope user notes -- /Applications/Notes.app/Contents/MacOS/notes-mcp
+```
+
+```bash
+codex mcp add notes -- /Applications/Notes.app/Contents/MacOS/notes-mcp
+```
+
+- **Errors the model can fix** (a missing argument, a tool that fails) come back as
+  results with `isError: true`; only protocol mistakes are JSON-RPC errors.
+- **`gate`** refuses every call with a message while the app's agent access is off.
+- **`onCall`** reports which client ran which tool, never the arguments or results, for
+  an access log the user can see.
+- stdout carries only protocol; log to stderr.
+
+`swift test` runs the protocol tests and an end-to-end session against the bundled
+`mcpkit-example` server. MIT licence.
