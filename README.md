@@ -41,6 +41,10 @@ codex mcp add notes -- /Applications/Notes.app/Contents/MacOS/notes-mcp
 - **`onCall`** reports which client ran which tool, never the arguments or results, for
   an access log the user can see.
 - stdout carries only protocol; log to stderr.
+- **`LocalChannel`** lets the MCP executable ask the running app for what only the app
+  can do (it holds the credentials or the windows): one JSON line each way over a 0600
+  Unix socket, accepted only from the same user and, for a signed app, only from code
+  signed by the same team.
 
 `swift test` runs the protocol tests and an end-to-end session against the bundled
 `mcpkit-example` server. MIT licence.
