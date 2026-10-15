@@ -46,5 +46,19 @@ codex mcp add notes -- /Applications/Notes.app/Contents/MacOS/notes-mcp
   Unix socket, accepted only from the same user and, for a signed app, only from code
   signed by the same team.
 
+## For apps
+
+Beyond the protocol, what every Mac app that agents can use needs:
+
+- **`AgentAccess`** — the user's consent, off by default, in `agent-access.json` (0600), and the
+  message a server answers with while it is off.
+- **`AccessLog`** — which agent used which tool and when, never the arguments, in
+  `agent-access.log` (0600, trimmed); `recorder()` plugs into `Server(onCall:)`.
+- **`ExecutableIdentity`** — whether the app was updated since this server started. macOS then
+  stops vouching for the old process and the app's signature check refuses it; telling that
+  apart lets the agent be told to reconnect.
+- **`AgentClient`** — registering the server with Claude Code or Codex through their own
+  command-line tools, in a login shell so the user's PATH applies.
+
 `swift test` runs the protocol tests and an end-to-end session against the bundled
 `mcpkit-example` server. MIT licence.
